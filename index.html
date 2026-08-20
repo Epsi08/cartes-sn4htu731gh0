@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mes Cartes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<title>Mes Cartes</title>
+<script src="JsBarcode.all.min.js"></script>
+<style>
+/* ===== iOS-INSPIRED DESIGN SYSTEM ===== */
+:root {
+  /* Light mode tokens (Apple system) */
+  --bg: #f2f2f7;
+  --bg-elevated: #ffffff;
+  --bg-secondary: rgba(120,120,128,0.12);
+  --separator: rgba(60,60,67,0.12);
+  --separator-strong: rgba(60,60,67,0.29);
+  --label: #000000;
+  --label-secondary: rgba(60,60,67,0.6);
+  --label-tertiary: rgba(60,60,67,0.3);
+  --tint: #007aff;
+  --tint-pressed: #0062cc;
+  --destructive: #ff3b30;
+  --success: #34c759;
+  --nav-bg: rgba(249,249,249,0.94);
+  --sheet-bg: #ffffff;
+  --grouped-bg: #f2f2f7;
+
+  /* Spacing (8pt grid) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+
+  /* Radii — iOS uses continuous corners */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 22px;
+
+  /* Type scale (SF-like) */
+  --f-caption: 12px;
+  --f-footnote: 13px;
+  --f-body: 17px;
+  --f-callout: 16px;
+  --f-headline: 17px;
+  --f-title-3: 20px;
+  --f-title-2: 22px;
+  --f-title-1: 28px;
+  --f-large: 34px;
+
+  /* Motion */
+  --spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --bg-elevated: #1c1c1e;
+    --bg-secondary: rgba(118,118,128,0.24);
+    --separator: rgba(84,84,88,0.34);
+    --separator-strong: rgba(84,84,88,0.65);
+    --label: #ffffff;
+    --label-secondary: rgba(235,235,245,0.6);
+    --label-tertiary: rgba(235,235,245,0.3);
+    --tint: #0a84ff;
+    --tint-pressed: #409cff;
+    --destructive: #ff453a;
+    --success: #30d158;
+    --nav-bg: rgba(28,28,30,0.85);
+    --sheet-bg: #1c1c1e;
+    --grouped-bg: #000000;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, "SF Pro Text", BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--label);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+  font-size: var(--f-body);
+  letter-spacing: -0.01em;
+}
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; padding: 0; }
+input, select { font-family: inherit; }
+:focus-visible { outline: 2px solid var(--tint); outline-offset: 2px; border-radius: 6px; }
+
+/* ===== NAV BAR (large title style) ===== */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--nav-bg);
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  padding-top: env(safe-area-inset-top);
+  transition: box-shadow 0.2s;
+}
+.nav.scrolled { box-shadow: 0 0.5px 0 var(--separator); }
+.nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 6px;
+  min-height: 44px;
+}
+.nav-title {
+  font-size: var(--f-headline);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.nav.scrolled .nav-title { opacity: 1; }
+.nav-actions { display: flex; gap: 4px; }
+.nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tint);
+  font-size: 22px;
+  font-weight: 300;
+  transition: background 0.12s;
+}
+.nav-btn:active { background: var(--bg-secondary); }
+.nav-btn svg { width: 22px; height: 22px; }
+
+.large-title {
+  padding: 8px 20px 16px;
+  font-size: var(--f-large);
+  font-weight: 700;
+  letter-spacing: -0.028em;
+  line-height: 1.1;
+}
+
+/* ===== MAIN ===== */
+.container {
+  padding: 4px 16px 40px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* ===== CARD GRID (Wallet-style) ===== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (min-width: 600px) {
+  .grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+}
+.card {
+  aspect-ratio: 1.585 / 1;
+  border-radius: var(--r-md);
+  padding: 14px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: stretch;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.4s var(--spring), box-shadow 0.3s var(--ease-out);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.08),
+    0 4px 14px rgba(0,0,0,0.06);
+  will-change: transform;
+}
+.card:active {
+  transform: scale(0.96);
+  transition-duration: 0.15s;
+}
+/* Subtle vibrancy overlay (Wallet-style shine) */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255,255,255,0.28), transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(0,0,0,0.18), transparent 60%);
+  pointer-events: none;
+}
+.card-emoji {
+  font-size: 26px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15));
+  position: relative;
+}
+.card-name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty {
+  text-align: center;
+  padding: 80px 24px 60px;
+  color: var(--label-secondary);
+}
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.85;
+}
+.empty h2 {
+  margin: 0 0 6px;
+  font-size: var(--f-title-3);
+  font-weight: 600;
+  color: var(--label);
+  letter-spacing: -0.02em;
+}
+.empty p {
+  margin: 0 0 28px;
+  font-size: var(--f-callout);
+  color: var(--label-secondary);
+}
+.empty .cta {
+  background: var(--tint);
+  color: white;
+  padding: 14px 22px;
+  border-radius: 999px;
+  font-size: var(--f-headline);
+  font-weight: 600;
+  transition: transform 0.15s, background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.empty .cta:active { transform: scale(0.96); background: var(--tint-pressed); }
+
+/* ===== SHEET (iOS bottom sheet) ===== */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  visibility: hidden;
+  z-index: 100;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-out), visibility 0s linear 0.4s;
+}
+.backdrop.open {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.3s var(--ease-out);
+}
+
+.sheet {
+  background: var(--sheet-bg);
+  width: 100%;
+  max-width: 520px;
+  border-radius: 14px 14px 0 0;
+  padding: 6px 20px calc(24px + env(safe-area-inset-bottom));
+  transform: translateY(100%);
+  transition: transform 0.4s var(--spring);
+  max-height: 92dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+@media (min-width: 560px) {
+  .sheet { border-radius: 14px; margin-bottom: max(20px, env(safe-area-inset-bottom)); max-height: 80dvh; }
+}
+.backdrop.open .sheet { transform: translateY(0); }
+
+.grabber {
+  width: 36px;
+  height: 5px;
+  background: var(--separator-strong);
+  border-radius: 3px;
+  margin: 8px auto 12px;
+}
+.sheet h2 {
+  margin: 0 0 20px;
+  font-size: var(--f-title-3);
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+
+/* Grouped form (iOS Settings style) */
+.form-group {
+  background: var(--bg-elevated);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.form-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  min-height: 44px;
+  border-bottom: 0.5px solid var(--separator);
+}
+.form-row:last-child { border-bottom: none; }
+.form-row label {
+  font-size: var(--f-body);
+  color: var(--label);
+  min-width: 90px;
+  padding-right: 12px;
+}
+.form-row input[type="text"] {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: var(--f-body);
+  color: var(--label);
+  padding: 4px 0;
+  min-width: 0;
+  -webkit-appearance: none;
+  outline: none;
+}
+.form-row input::placeholder { color: var(--label-tertiary); }
+.form-row.vertical {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 12px 16px;
+}
+.form-row.vertical label {
+  min-width: 0;
+  font-size: var(--f-footnote);
+  color: var(--label-secondary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 500;
+}
+
+/* Native-looking select */
+.select-wrap {
+  position: relative;
+  flex: 1;
+}
+.select-wrap select {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: var(--f-body);
+  color: var(--label);
+  padding: 4px 22px 4px 0;
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+  text-align: right;
+  cursor: pointer;
+}
+.select-wrap::after {
+  content: "";
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px; height: 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%23999' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: contain;
+  pointer-events: none;
+}
+
+/* Live barcode preview inside the edit sheet */
+.preview-panel {
+  background: #ffffff;
+  border-radius: var(--r-md);
+  padding: 16px 16px 12px;
+  margin-bottom: 16px;
+  text-align: center;
+  border: 0.5px solid var(--separator);
+}
+.preview-panel svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+.preview-panel svg:not(:empty) { margin-bottom: 10px; }
+.preview-status {
+  font-size: var(--f-footnote);
+  line-height: 1.35;
+  color: #3c3c43;
+}
+.preview-status.warn { color: #b25000; }
+.preview-status.error { color: #c1121c; }
+
+/* Color swatches */
+.color-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+.color-swatch {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.15s var(--spring);
+  position: relative;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.15);
+}
+.color-swatch::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  border: 2.5px solid var(--sheet-bg);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.color-swatch.selected::after { opacity: 1; }
+.color-swatch.selected {
+  transform: scale(1.12);
+  box-shadow: 0 0 0 2px var(--label);
+}
+.color-swatch:active { transform: scale(0.95); }
+
+/* Emoji chooser */
+.emoji-row {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 6px;
+  margin-top: 6px;
+}
+.emoji-chip {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  border-radius: 10px;
+  background: var(--bg-secondary);
+  transition: transform 0.15s, background 0.15s;
+}
+.emoji-chip.selected { background: var(--tint); transform: scale(1.05); }
+.emoji-chip:active { transform: scale(0.9); }
+
+/* Sheet actions */
+.sheet-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+.btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--r-md);
+  font-size: var(--f-headline);
+  font-weight: 600;
+  transition: transform 0.12s, background 0.12s;
+  letter-spacing: -0.01em;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--tint); color: white; }
+.btn-primary:active { background: var(--tint-pressed); }
+.btn-secondary { background: var(--bg-secondary); color: var(--label); }
+.btn-destructive { background: var(--bg-secondary); color: var(--destructive); }
+.btn-plain { background: transparent; color: var(--tint); }
+
+/* ===== BARCODE DISPLAY (full-screen, Wallet-style) ===== */
+.display {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 200;
+  display: none;
+  flex-direction: column;
+  animation: fadeIn 0.25s var(--ease-out);
+}
+.display.open { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.display-nav {
+  padding: calc(env(safe-area-inset-top) + 8px) 16px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 52px;
+}
+.display-title {
+  font-size: var(--f-headline);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-align: center;
+  flex: 1;
+}
+.display-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  gap: 24px;
+}
+.hero-card {
+  width: 100%;
+  max-width: 380px;
+  aspect-ratio: 1.585 / 1;
+  border-radius: 20px;
+  padding: 18px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.1),
+    0 12px 32px rgba(0,0,0,0.14);
+  animation: heroIn 0.5s var(--spring);
+}
+@keyframes heroIn {
+  from { transform: translateY(20px) scale(0.94); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+.hero-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255,255,255,0.3), transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(0,0,0,0.2), transparent 60%);
+}
+.hero-emoji {
+  font-size: 36px;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+  position: relative;
+}
+.hero-name {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  position: relative;
+}
+.barcode-panel {
+  background: white;
+  padding: 22px 20px 18px;
+  border-radius: var(--r-lg);
+  text-align: center;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  animation: heroIn 0.5s var(--spring) 0.08s backwards;
+}
+.barcode-panel svg { max-width: 100%; height: auto; }
+.barcode-number {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 4px 0;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  color: #000;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  word-break: break-all;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.barcode-number:active { background: rgba(0,0,0,0.06); }
+.barcode-number:empty { display: none; }
+.barcode-warning {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 0.5px solid rgba(60,60,67,0.18);
+  font-size: var(--f-footnote);
+  line-height: 1.35;
+  color: #b25000;
+}
+.brightness-hint {
+  font-size: var(--f-footnote);
+  color: var(--label-secondary);
+  text-align: center;
+  padding: 0 24px;
+}
+
+/* Scan button in the number row */
+.scan-btn {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  margin-left: 8px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tint);
+  transition: background 0.12s, transform 0.12s;
+}
+.scan-btn svg { width: 22px; height: 22px; }
+.scan-btn:active { background: var(--bg-secondary); transform: scale(0.92); }
+
+/* ===== CAMERA SCANNER ===== */
+.scanner {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 250;
+  display: none;
+}
+.scanner.open { display: block; animation: fadeIn 0.2s var(--ease-out); }
+.scanner video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.scanner-top {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(env(safe-area-inset-top) + 8px) 16px 8px;
+  z-index: 2;
+}
+.scanner-title {
+  color: #fff;
+  font-size: var(--f-headline);
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.scanner-close {
+  color: #fff;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(8px);
+}
+.scanner-frame {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(80vw, 340px);
+  aspect-ratio: 1.6 / 1;
+  border: 2.5px solid rgba(255,255,255,0.95);
+  border-radius: 18px;
+  box-shadow: 0 0 0 200vmax rgba(0,0,0,0.45);
+  z-index: 1;
+}
+.scanner-hint {
+  position: absolute;
+  bottom: calc(48px + env(safe-area-inset-bottom));
+  left: 24px; right: 24px;
+  text-align: center;
+  color: #fff;
+  font-size: var(--f-callout);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  z-index: 2;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: calc(28px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(30,30,30,0.92);
+  color: white;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-size: var(--f-callout);
+  font-weight: 500;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s var(--spring);
+  z-index: 500;
+  max-width: 88%;
+  text-align: center;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Confirm dialog */
+.alert-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  z-index: 400;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.alert-backdrop.open { display: flex; animation: fadeIn 0.2s; }
+.alert {
+  background: var(--sheet-bg);
+  border-radius: var(--r-md);
+  max-width: 280px;
+  width: 100%;
+  text-align: center;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  animation: alertIn 0.25s var(--spring);
+}
+@keyframes alertIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.alert-body { padding: 20px 16px 16px; }
+.alert-title { font-size: var(--f-headline); font-weight: 600; margin-bottom: 4px; }
+.alert-msg { font-size: var(--f-footnote); color: var(--label-secondary); }
+.alert-actions { display: flex; border-top: 0.5px solid var(--separator); }
+.alert-btn {
+  flex: 1;
+  padding: 12px;
+  font-size: var(--f-body);
+  color: var(--tint);
+  border-right: 0.5px solid var(--separator);
+  transition: background 0.1s;
+}
+.alert-btn:last-child { border-right: none; }
+.alert-btn:active { background: var(--bg-secondary); }
+.alert-btn.destructive { color: var(--destructive); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="nav-row">
+    <button class="nav-btn" id="menuBtn" aria-label="Menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/><circle cx="5" cy="12" r="1.5" fill="currentColor"/></svg>
+    </button>
+    <div class="nav-title">Mes Cartes</div>
+    <button class="nav-btn" id="addBtn" aria-label="Ajouter">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+  </div>
+</nav>
+
+<h1 class="large-title">Mes Cartes</h1>
+
+<main class="container">
+  <div id="cardGrid" class="grid"></div>
+  <div id="emptyState" class="empty" style="display:none">
+    <div class="empty-icon">🪪</div>
+    <h2>Aucune carte</h2>
+    <p>Ajoute ta première carte de fidélité</p>
+    <button class="cta" onclick="openEdit()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Nouvelle carte
+    </button>
+  </div>
+</main>
+
+<!-- Edit sheet -->
+<div class="backdrop" id="editModal">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="editTitle" onclick="event.stopPropagation()">
+    <div class="grabber"></div>
+    <h2 id="editTitle">Nouvelle carte</h2>
+
+    <div class="form-group">
+      <div class="form-row">
+        <label for="fieldName">Nom</label>
+        <input type="text" id="fieldName" placeholder="Carrefour" autocomplete="off">
+      </div>
+      <div class="form-row">
+        <label for="fieldNumber">Numéro</label>
+        <input type="text" id="fieldNumber" placeholder="Numéro de fidélité" autocomplete="off" spellcheck="false" autocapitalize="off">
+        <button type="button" class="scan-btn" id="scanBtn" aria-label="Scanner le code-barres avec la caméra">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8v8M10.5 8v8M13.5 8v5M13.5 16v.01M16.5 8v8"/></svg>
+        </button>
+      </div>
+      <div class="form-row">
+        <label for="fieldType">Format</label>
+        <div class="select-wrap">
+          <select id="fieldType">
+            <option value="auto">Automatique</option>
+            <option value="CODE128">Code 128</option>
+            <option value="EAN13">EAN-13</option>
+            <option value="EAN8">EAN-8</option>
+            <option value="UPC">UPC</option>
+            <option value="CODE39">Code 39</option>
+            <option value="ITF14">ITF-14</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-panel" id="previewPanel" hidden>
+      <svg id="previewSvg" aria-hidden="true"></svg>
+      <div class="preview-status" id="previewStatus"></div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-row vertical">
+        <label>Icône</label>
+        <div class="emoji-row" id="emojiRow"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-row vertical">
+        <label>Couleur</label>
+        <div class="color-row" id="colorRow"></div>
+      </div>
+    </div>
+
+    <div class="sheet-actions">
+      <button class="btn btn-primary" onclick="saveCard()">Enregistrer</button>
+      <button class="btn btn-destructive" id="deleteBtn" onclick="deleteCurrent()" style="display:none">Supprimer la carte</button>
+      <button class="btn btn-plain" onclick="closeEdit()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- Display screen -->
+<div class="display" id="displayScreen">
+  <div class="display-nav">
+    <button class="nav-btn" onclick="closeDisplay()" aria-label="Fermer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="display-title" id="displayName"></div>
+    <button class="nav-btn" id="editFromDisplayBtn" aria-label="Modifier">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 3l4 4L8 20H4v-4L17 3z"/></svg>
+    </button>
+  </div>
+  <div class="display-body">
+    <div class="hero-card" id="heroCard">
+      <div class="hero-emoji" id="heroEmoji"></div>
+      <div class="hero-name" id="heroName"></div>
+    </div>
+    <div class="barcode-panel">
+      <svg id="barcodeSvg" aria-hidden="true"></svg>
+      <button type="button" class="barcode-number" id="displayNumber" aria-label="Copier le numéro"></button>
+      <div class="barcode-warning" id="barcodeWarning" role="status" style="display:none"></div>
+    </div>
+    <div class="brightness-hint">L'écran reste allumé. Monte la luminosité à fond pour faciliter le scan.</div>
+  </div>
+</div>
+
+<!-- Menu sheet -->
+<div class="backdrop" id="menuModal">
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Menu" onclick="event.stopPropagation()">
+    <div class="grabber"></div>
+    <h2>Menu</h2>
+    <div class="sheet-actions">
+      <button class="btn btn-secondary" onclick="exportData()">Exporter mes cartes</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('importInput').click()">Importer un fichier</button>
+      <input type="file" id="importInput" accept=".json,application/json" style="display:none" onchange="importData(event)">
+      <button class="btn btn-plain" onclick="closeMenu()">Fermer</button>
+    </div>
+    <p style="font-size:var(--f-footnote);color:var(--label-secondary);margin:20px 8px 0;text-align:center;line-height:1.4;">
+      Tes cartes sont enregistrées uniquement dans ton navigateur.<br>
+      Pense à exporter une sauvegarde régulièrement.
+    </p>
+  </div>
+</div>
+
+<!-- Camera scanner overlay -->
+<div class="scanner" id="scannerOverlay" role="dialog" aria-modal="true" aria-label="Scanner un code-barres">
+  <video id="scannerVideo" playsinline muted></video>
+  <div class="scanner-top">
+    <button class="nav-btn scanner-close" onclick="closeScanner()" aria-label="Fermer le scanner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="scanner-title">Scanner</div>
+    <div style="width:32px"></div>
+  </div>
+  <div class="scanner-frame" aria-hidden="true"></div>
+  <div class="scanner-hint">Vise le code-barres de ta carte</div>
+</div>
+
+<!-- Alert dialog -->
+<div class="alert-backdrop" id="alertModal">
+  <div class="alert">
+    <div class="alert-body">
+      <div class="alert-title" id="alertTitle"></div>
+      <div class="alert-msg" id="alertMsg"></div>
+    </div>
+    <div class="alert-actions" id="alertActions"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ STORAGE ============
+const STORAGE_KEY = 'mes-cartes-fidelite-v1';
+let cards = [];
+let editingId = null;
+let selectedColor = '#007aff';
+let selectedEmoji = '🛒';
+
+// iOS system colors
+const COLORS = [
+  '#ff3b30', '#ff9500', '#ffcc00', '#34c759',
+  '#00c7be', '#30b0c7', '#007aff', '#5856d6',
+  '#af52de', '#ff2d55', '#a2845e', '#8e8e93'
+];
+
+const EMOJIS = ['🛒','💊','⛽','☕','🍔','🥐','🍷','📚','🎬','👕','💄','🎁','✈️','🏨','🏋️','🐾','🌱','🥕','🐟','💻','🔧','🛠️','🚗','⚡','🪑','🧴','🍕','🍰'];
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    cards = raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    cards = [];
+  }
+}
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+}
+
+// Haptic (Android + supporting devices)
+function haptic(pattern = 8) {
+  if (navigator.vibrate) { try { navigator.vibrate(pattern); } catch (e) {} }
+}
+
+// ============ RENDER ============
+function render() {
+  const grid = document.getElementById('cardGrid');
+  const empty = document.getElementById('emptyState');
+  grid.innerHTML = '';
+
+  if (cards.length === 0) {
+    empty.style.display = 'block';
+    grid.style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+
+  cards.forEach(card => {
+    const btn = document.createElement('button');
+    btn.className = 'card';
+    btn.type = 'button';
+    btn.style.background = card.color || '#007aff';
+    btn.setAttribute('aria-label', `Afficher la carte ${card.name || 'sans nom'}`);
+    btn.onclick = () => { haptic(6); openDisplay(card.id); };
+
+    const emoji = document.createElement('div');
+    emoji.className = 'card-emoji';
+    emoji.setAttribute('aria-hidden', 'true');
+    emoji.textContent = card.emoji || '🛒';
+
+    const name = document.createElement('div');
+    name.className = 'card-name';
+    name.textContent = card.name || 'Sans nom';
+
+    btn.append(emoji, name);
+    grid.appendChild(btn);
+  });
+}
+
+// ============ NAV SCROLL ============
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40);
+}, { passive: true });
+
+// ============ EDIT SHEET ============
+function openEdit(id = null) {
+  editingId = id;
+  const title = document.getElementById('editTitle');
+  const delBtn = document.getElementById('deleteBtn');
+
+  if (id) {
+    const c = cards.find(x => x.id === id);
+    if (!c) return;
+    title.textContent = 'Modifier la carte';
+    document.getElementById('fieldName').value = c.name || '';
+    document.getElementById('fieldNumber').value = c.number || '';
+    document.getElementById('fieldType').value = c.type || 'auto';
+    selectedEmoji = c.emoji || '🛒';
+    selectedColor = c.color || '#007aff';
+    delBtn.style.display = 'block';
+  } else {
+    title.textContent = 'Nouvelle carte';
+    document.getElementById('fieldName').value = '';
+    document.getElementById('fieldNumber').value = '';
+    document.getElementById('fieldType').value = 'auto';
+    selectedEmoji = EMOJIS[0];
+    selectedColor = COLORS[Math.floor(Math.random() * COLORS.length)];
+    delBtn.style.display = 'none';
+  }
+  renderColors();
+  renderEmojis();
+  updatePreview();
+  openSheet('editModal');
+}
+function closeEdit() {
+  closeSheet('editModal');
+  editingId = null;
+}
+
+// Live barcode preview — surfaces format problems before the checkout queue does.
+function updatePreview() {
+  const number = document.getElementById('fieldNumber').value.trim();
+  const type = document.getElementById('fieldType').value;
+  const panel = document.getElementById('previewPanel');
+  const status = document.getElementById('previewStatus');
+  const svg = document.getElementById('previewSvg');
+
+  if (!number) {
+    panel.hidden = true;
+    svg.innerHTML = '';
+    return;
+  }
+  panel.hidden = false;
+
+  const result = drawBarcode(svg, number, type, 70);
+  status.className = 'preview-status';
+  if (!result.ok) {
+    status.classList.add('error');
+    status.textContent = 'Ce numéro ne peut pas être converti en code-barres. Vérifie-le, ou change de format.';
+  } else if (result.fellBack) {
+    status.classList.add('warn');
+    status.textContent = `Incompatible avec ${FORMAT_LABELS[result.requested] || result.requested} — sera affiché en Code 128.`;
+  } else {
+    status.textContent = `Format ${FORMAT_LABELS[result.format] || result.format}`;
+  }
+}
+const COLOR_NAMES = {
+  '#ff3b30': 'Rouge', '#ff9500': 'Orange', '#ffcc00': 'Jaune', '#34c759': 'Vert',
+  '#00c7be': 'Turquoise', '#30b0c7': 'Bleu ciel', '#007aff': 'Bleu', '#5856d6': 'Indigo',
+  '#af52de': 'Violet', '#ff2d55': 'Rose', '#a2845e': 'Marron', '#8e8e93': 'Gris'
+};
+
+function renderColors() {
+  const row = document.getElementById('colorRow');
+  row.innerHTML = '';
+  COLORS.forEach(c => {
+    const s = document.createElement('button');
+    s.type = 'button';
+    s.className = 'color-swatch' + (c === selectedColor ? ' selected' : '');
+    s.style.background = c;
+    s.setAttribute('aria-label', COLOR_NAMES[c] || c);
+    s.setAttribute('aria-pressed', String(c === selectedColor));
+    s.onclick = () => { haptic(5); selectedColor = c; renderColors(); };
+    row.appendChild(s);
+  });
+}
+function renderEmojis() {
+  const row = document.getElementById('emojiRow');
+  row.innerHTML = '';
+  EMOJIS.forEach(e => {
+    const s = document.createElement('button');
+    s.type = 'button';
+    s.className = 'emoji-chip' + (e === selectedEmoji ? ' selected' : '');
+    s.textContent = e;
+    s.setAttribute('aria-label', 'Icône ' + e);
+    s.setAttribute('aria-pressed', String(e === selectedEmoji));
+    s.onclick = () => { haptic(5); selectedEmoji = e; renderEmojis(); };
+    row.appendChild(s);
+  });
+}
+function saveCard() {
+  const name = document.getElementById('fieldName').value.trim();
+  const number = document.getElementById('fieldNumber').value.trim();
+  const type = document.getElementById('fieldType').value;
+
+  if (!name) { toast('Donne un nom au magasin'); return; }
+  if (!number) { toast('Entre un numéro de fidélité'); return; }
+
+  const wasEditing = !!editingId;
+  if (wasEditing) {
+    const idx = cards.findIndex(x => x.id === editingId);
+    if (idx >= 0) {
+      cards[idx] = { ...cards[idx], name, number, type, emoji: selectedEmoji, color: selectedColor };
+    }
+  } else {
+    cards.push({
+      id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      name, number, type, emoji: selectedEmoji, color: selectedColor,
+      created: Date.now()
+    });
+  }
+  save();
+  render();
+  closeEdit();
+  haptic(12);
+  toast(wasEditing ? 'Carte modifiée' : 'Carte ajoutée');
+}
+function deleteCurrent() {
+  if (!editingId) return;
+  confirm2('Supprimer cette carte ?', 'Cette action est irréversible.', 'Supprimer', () => {
+    cards = cards.filter(x => x.id !== editingId);
+    save();
+    render();
+    closeEdit();
+    closeDisplay();
+    haptic([10, 40, 10]);
+    toast('Carte supprimée');
+  });
+}
+
+// ============ DISPLAY ============
+let wakeLock = null;
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+  } catch (e) {}
+}
+function releaseWakeLock() {
+  if (wakeLock) { try { wakeLock.release(); } catch (e) {} wakeLock = null; }
+}
+
+// Sheets share body scroll locking; only unlock when none is left open.
+function openSheet(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSheet(id) {
+  document.getElementById(id).classList.remove('open');
+  const anyOpen = ['editModal', 'menuModal'].some(m => document.getElementById(m).classList.contains('open'))
+    || document.getElementById('displayScreen').classList.contains('open');
+  if (!anyOpen) document.body.style.overflow = '';
+}
+
+// Picks the barcode format for a number when the card is set to "Automatique".
+function detectFormat(n) {
+  if (/^\d{13}$/.test(n)) return 'EAN13';
+  if (/^\d{12}$/.test(n)) return 'UPC';
+  if (/^\d{8}$/.test(n)) return 'EAN8';
+  if (/^\d{14}$/.test(n)) return 'ITF14';
+  return 'CODE128';
+}
+
+// Renders into svgEl. Returns { ok, format, requested, fellBack }.
+// fellBack is only reported when the user explicitly chose the failing format —
+// in auto mode a checksum miss just lands on Code 128 silently.
+function drawBarcode(svgEl, rawNumber, type, height = 110) {
+  const n = String(rawNumber || '').replace(/\s/g, '');
+  svgEl.innerHTML = '';
+  if (!n) return { ok: false, format: null, requested: type, fellBack: false };
+
+  const isAuto = !type || type === 'auto';
+  const requested = isAuto ? detectFormat(n) : type;
+  const opts = { lineColor: '#000', width: 2.4, height, displayValue: false, margin: 0 };
+
+  try {
+    JsBarcode(svgEl, n, { ...opts, format: requested, valid: v => { if (!v) throw new Error('invalid'); } });
+    return { ok: true, format: requested, requested, fellBack: false };
+  } catch (e) {
+    if (requested !== 'CODE128') {
+      try {
+        JsBarcode(svgEl, n, { ...opts, format: 'CODE128', valid: v => { if (!v) throw new Error('invalid'); } });
+        return { ok: true, format: 'CODE128', requested, fellBack: !isAuto };
+      } catch (e2) { /* fall through */ }
+    }
+    svgEl.innerHTML = '';
+    return { ok: false, format: null, requested, fellBack: false };
+  }
+}
+
+const FORMAT_LABELS = {
+  CODE128: 'Code 128', EAN13: 'EAN-13', EAN8: 'EAN-8',
+  UPC: 'UPC', CODE39: 'Code 39', ITF14: 'ITF-14'
+};
+
+function openDisplay(id) {
+  const c = cards.find(x => x.id === id);
+  if (!c) return;
+  editingId = id;
+
+  const name = c.name || 'Sans nom';
+  document.getElementById('displayName').textContent = name;
+  document.getElementById('heroName').textContent = name;
+  document.getElementById('heroEmoji').textContent = c.emoji || '🛒';
+  document.getElementById('heroCard').style.background = c.color || '#007aff';
+  document.getElementById('displayNumber').textContent = c.number || '';
+
+  const svg = document.getElementById('barcodeSvg');
+  const warn = document.getElementById('barcodeWarning');
+  const result = drawBarcode(svg, c.number, c.type);
+
+  if (!result.ok) {
+    warn.textContent = c.number
+      ? `Ce numéro ne peut pas être converti en code-barres. Montre le numéro à la caisse.`
+      : `Cette carte n'a pas de numéro. Modifie-la pour en ajouter un.`;
+    warn.style.display = 'block';
+  } else if (result.fellBack) {
+    warn.textContent = `Le format ${FORMAT_LABELS[result.requested] || result.requested} ne correspond pas à ce numéro — affiché en Code 128.`;
+    warn.style.display = 'block';
+  } else {
+    warn.style.display = 'none';
+  }
+
+  document.getElementById('editFromDisplayBtn').onclick = () => {
+    closeDisplay();
+    openEdit(id);
+  };
+
+  document.getElementById('displayScreen').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  requestWakeLock();
+}
+function closeDisplay() {
+  document.getElementById('displayScreen').classList.remove('open');
+  document.body.style.overflow = '';
+  releaseWakeLock();
+}
+
+// ============ CAMERA SCANNER ============
+// Native BarcodeDetector when available (Android/Chrome), ZXing fallback (iPhone/Safari).
+let scanStream = null, scanLoop = null, zxingReader = null, scannerActive = false;
+
+const SCAN_FORMAT_MAP = {
+  ean_13: 'EAN13', ean_8: 'EAN8', upc_a: 'UPC',
+  code_128: 'CODE128', code_39: 'CODE39', itf: 'ITF14'
+};
+const ZXING_FORMAT_MAP = {
+  EAN_13: 'EAN13', EAN_8: 'EAN8', UPC_A: 'UPC',
+  CODE_128: 'CODE128', CODE_39: 'CODE39', ITF: 'ITF14'
+};
+
+let zxingPromise = null;
+function loadZXing() {
+  if (window.ZXing) return Promise.resolve();
+  if (!zxingPromise) {
+    zxingPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'zxing.min.js';
+      s.onload = resolve;
+      s.onerror = () => { zxingPromise = null; reject(new Error('zxing load failed')); };
+      document.head.appendChild(s);
+    });
+  }
+  return zxingPromise;
+}
+
+async function openScanner() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    toast('Caméra non disponible sur cet appareil');
+    return;
+  }
+  const overlay = document.getElementById('scannerOverlay');
+  const video = document.getElementById('scannerVideo');
+  overlay.classList.add('open');
+  scannerActive = true;
+
+  try {
+    let nativeFormats = [];
+    if ('BarcodeDetector' in window) {
+      try {
+        const supported = await BarcodeDetector.getSupportedFormats();
+        nativeFormats = Object.keys(SCAN_FORMAT_MAP).filter(f => supported.includes(f));
+      } catch (e) {}
+    }
+
+    if (nativeFormats.length) {
+      scanStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }, audio: false
+      });
+      if (!scannerActive) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; return; }
+      video.srcObject = scanStream;
+      await video.play();
+      const detector = new BarcodeDetector({ formats: nativeFormats });
+      const tick = async () => {
+        if (!scannerActive) return;
+        try {
+          const codes = await detector.detect(video);
+          if (codes.length && scannerActive) {
+            onScanResult(codes[0].rawValue, SCAN_FORMAT_MAP[codes[0].format]);
+            return;
+          }
+        } catch (e) {}
+        scanLoop = setTimeout(tick, 150);
+      };
+      tick();
+    } else {
+      await loadZXing();
+      if (!scannerActive) return;
+      zxingReader = new ZXing.BrowserMultiFormatReader();
+      await zxingReader.decodeFromConstraints(
+        { audio: false, video: { facingMode: 'environment' } },
+        video,
+        (result) => {
+          if (result && scannerActive) {
+            onScanResult(result.getText(), ZXING_FORMAT_MAP[ZXing.BarcodeFormat[result.getBarcodeFormat()]]);
+          }
+        }
+      );
+    }
+  } catch (e) {
+    closeScanner();
+    if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) {
+      toast('Accès caméra refusé — autorise-le dans les réglages');
+    } else if (e && e.name === 'NotFoundError') {
+      toast('Aucune caméra trouvée');
+    } else {
+      toast("Impossible d'ouvrir la caméra");
+    }
+  }
+}
+
+function closeScanner() {
+  scannerActive = false;
+  if (scanLoop) { clearTimeout(scanLoop); scanLoop = null; }
+  if (zxingReader) { try { zxingReader.reset(); } catch (e) {} zxingReader = null; }
+  if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+  const video = document.getElementById('scannerVideo');
+  video.srcObject = null;
+  document.getElementById('scannerOverlay').classList.remove('open');
+}
+
+function onScanResult(text, format) {
+  closeScanner();
+  haptic([15, 30, 15]);
+  document.getElementById('fieldNumber').value = String(text || '').trim();
+  const sel = document.getElementById('fieldType');
+  // ITF is variable-length; only ITF-14 is renderable, so let auto-detect decide otherwise
+  const usable = format && format !== 'ITF14' && [...sel.options].some(o => o.value === format);
+  sel.value = usable ? format : 'auto';
+  updatePreview();
+  toast('Code-barres scanné');
+}
+
+// ============ MENU / IMPORT / EXPORT ============
+function openMenu() { openSheet('menuModal'); }
+function closeMenu() { closeSheet('menuModal'); }
+
+function exportData() {
+  const data = JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), cards }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'mes-cartes-' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Fichier exporté');
+  closeMenu();
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const rawList = Array.isArray(data) ? data : (Array.isArray(data.cards) ? data.cards : []);
+      // Keep only usable entries and coerce every field to a safe shape
+      const imported = rawList
+        .filter(c => c && typeof c === 'object' && (c.name || c.number))
+        .map(c => ({
+          id: typeof c.id === 'string' ? c.id : 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+          name: String(c.name || 'Sans nom').slice(0, 60),
+          number: String(c.number || '').slice(0, 80),
+          type: ['auto','CODE128','EAN13','EAN8','UPC','CODE39','ITF14'].includes(c.type) ? c.type : 'auto',
+          emoji: EMOJIS.includes(c.emoji) ? c.emoji : '🛒',
+          color: /^#[0-9a-fA-F]{6}$/.test(c.color) ? c.color : '#007aff',
+          created: typeof c.created === 'number' ? c.created : Date.now()
+        }));
+      if (!imported.length) { toast('Aucune carte trouvée dans ce fichier'); return; }
+      const skipped = rawList.length - imported.length;
+
+      confirm2(
+        `${imported.length} carte(s) trouvée(s)`,
+        skipped > 0 ? `${skipped} entrée(s) illisible(s) ignorée(s). Comment veux-tu les intégrer ?` : 'Comment veux-tu les intégrer ?',
+        'Remplacer tout',
+        () => { cards = imported; save(); render(); closeMenu(); toast('Import réussi'); },
+        'Ajouter aux existantes',
+        () => {
+          imported.forEach(c => {
+            const idx = cards.findIndex(x => x.id === c.id);
+            if (idx >= 0) cards[idx] = c; else cards.push(c);
+          });
+          save(); render(); closeMenu(); toast('Import réussi');
+        }
+      );
+    } catch (err) {
+      toast('Fichier invalide');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ============ ALERT ============
+function confirm2(title, msg, okLabel, onOk, altLabel, onAlt) {
+  const modal = document.getElementById('alertModal');
+  document.getElementById('alertTitle').textContent = title;
+  document.getElementById('alertMsg').textContent = msg || '';
+  const actions = document.getElementById('alertActions');
+  actions.innerHTML = '';
+  const cancel = document.createElement('button');
+  cancel.className = 'alert-btn';
+  cancel.textContent = 'Annuler';
+  cancel.onclick = () => modal.classList.remove('open');
+  actions.appendChild(cancel);
+
+  if (altLabel) {
+    const alt = document.createElement('button');
+    alt.className = 'alert-btn';
+    alt.textContent = altLabel;
+    alt.onclick = () => { modal.classList.remove('open'); onAlt && onAlt(); };
+    actions.appendChild(alt);
+  }
+
+  const ok = document.createElement('button');
+  const isDestructive = /supprim|remplacer/i.test(okLabel);
+  ok.className = 'alert-btn' + (isDestructive ? ' destructive' : '');
+  ok.textContent = okLabel;
+  ok.onclick = () => { modal.classList.remove('open'); onOk && onOk(); };
+  actions.appendChild(ok);
+
+  modal.classList.add('open');
+}
+
+// ============ TOAST ============
+let toastTimer = null;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ============ INIT ============
+document.getElementById('addBtn').onclick = () => { haptic(8); openEdit(); };
+document.getElementById('menuBtn').onclick = () => { haptic(6); openMenu(); };
+
+document.getElementById('editModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeEdit();
+});
+document.getElementById('menuModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeMenu();
+});
+// The alert never owns the scroll lock — closing it must not touch body overflow
+document.getElementById('alertModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+});
+
+// Live barcode preview while typing
+document.getElementById('fieldNumber').addEventListener('input', updatePreview);
+document.getElementById('fieldType').addEventListener('change', updatePreview);
+
+// Camera scan
+document.getElementById('scanBtn').addEventListener('click', () => { haptic(8); openScanner(); });
+
+// Tap the number to copy it (fallback when a scanner can't read the screen)
+document.getElementById('displayNumber').addEventListener('click', async () => {
+  const n = document.getElementById('displayNumber').textContent;
+  if (!n) return;
+  try {
+    await navigator.clipboard.writeText(n);
+    haptic(8);
+    toast('Numéro copié');
+  } catch (e) {}
+});
+
+// Escape closes the topmost layer (desktop convenience)
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  const alert = document.getElementById('alertModal');
+  if (alert.classList.contains('open')) { alert.classList.remove('open'); return; }
+  if (document.getElementById('scannerOverlay').classList.contains('open')) { closeScanner(); return; }
+  if (document.getElementById('displayScreen').classList.contains('open')) { closeDisplay(); return; }
+  if (document.getElementById('editModal').classList.contains('open')) { closeEdit(); return; }
+  if (document.getElementById('menuModal').classList.contains('open')) closeMenu();
+});
+
+// Re-request wake lock on visibility change; stop the camera when the app is hidden
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    if (document.getElementById('displayScreen').classList.contains('open')) requestWakeLock();
+  } else if (document.getElementById('scannerOverlay').classList.contains('open')) {
+    closeScanner();
+  }
+});
+
+load();
+render();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+</script>
+</body>
+</html>
