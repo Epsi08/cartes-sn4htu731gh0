@@ -23,41 +23,39 @@ Une petite app web pour stocker tes cartes de fidélité et afficher le code-bar
 
 Astuce : pense à exporter tes cartes via le menu (⋯) régulièrement. Si tu changes de téléphone ou que tu vides le cache, tu pourras réimporter le fichier.
 
-## Mettre en ligne sur GitHub Pages
+## En ligne
 
-C'est gratuit et permanent. Étapes :
+L'app est déployée sur GitHub Pages :
 
-1. Crée un compte sur [github.com](https://github.com) si tu n'en as pas.
-2. Clique sur **New repository** (le bouton vert).
-3. Donne-lui un nom, par exemple `mes-cartes`. Coche **Public**. Clique sur **Create repository**.
-4. Sur la page du repo, clique sur **uploading an existing file** (lien sous "Quick setup").
-5. Glisse-dépose tous les fichiers de ce dossier :
-   - `index.html`
-   - `manifest.json`
-   - `sw.js`
-   - `JsBarcode.all.min.js`
-   - `zxing.min.js`
-   - `icon.svg`
-   - `icon-192.png`
-   - `icon-512.png`
-   - `apple-touch-icon.png`
-6. En bas, clique sur **Commit changes**.
-7. Va dans **Settings → Pages** (dans le menu de gauche).
-8. Sous **Branch**, choisis `main` et `/ (root)`, puis **Save**.
-9. Attends 1-2 minutes. Ton app sera dispo à l'adresse :
-   `https://TON-USERNAME.github.io/mes-cartes/`
+**https://epsi08.github.io/mes-cartes/**
+
+Dépôt : https://github.com/Epsi08/mes-cartes
+
+### Publier une modification
+
+Depuis ce dossier, après avoir modifié un fichier :
+
+```bash
+git add -A && git commit -m "Description du changement" && git push
+```
+
+GitHub Pages redéploie tout seul en 1 à 2 minutes. Sur le téléphone, ferme et rouvre
+l'app pour récupérer la nouvelle version (le service worker va chercher la mise à jour
+au démarrage).
 
 ## Installation sur le téléphone
 
-**iPhone (Safari) :**
-1. Ouvre l'URL GitHub Pages dans Safari.
+**iPhone (Safari — obligatoire, ça ne marche pas depuis Chrome sur iOS) :**
+1. Ouvre https://epsi08.github.io/mes-cartes/ dans **Safari**.
 2. Touche le bouton "Partager" (carré avec flèche vers le haut).
-3. Choisis **"Sur l'écran d'accueil"**.
-4. L'app apparaît comme une vraie app sur ton écran.
+3. Fais défiler et choisis **"Sur l'écran d'accueil"**.
+4. L'app apparaît comme une vraie app, en plein écran, sans barre d'adresse.
 
 **Android (Chrome) :**
 1. Ouvre l'URL dans Chrome.
 2. Menu (⋮) → **"Installer l'application"** ou **"Ajouter à l'écran d'accueil"**.
+
+Au premier scan caméra, le téléphone demande l'autorisation d'accès à la caméra : accepte-la.
 
 ## Astuce caisse
 
