@@ -27,9 +27,9 @@ Astuce : pense à exporter tes cartes via le menu (⋯) régulièrement. Si tu c
 
 L'app est déployée sur GitHub Pages :
 
-**https://epsi08.github.io/mes-cartes/**
+**https://epsi08.github.io/cartes-sn4htu731gh0/**
 
-Dépôt : https://github.com/Epsi08/mes-cartes
+Dépôt : https://github.com/Epsi08/cartes-sn4htu731gh0
 
 ### Publier une modification
 
@@ -46,7 +46,7 @@ au démarrage).
 ## Installation sur le téléphone
 
 **iPhone (Safari — obligatoire, ça ne marche pas depuis Chrome sur iOS) :**
-1. Ouvre https://epsi08.github.io/mes-cartes/ dans **Safari**.
+1. Ouvre https://epsi08.github.io/cartes-sn4htu731gh0/ dans **Safari**.
 2. Touche le bouton "Partager" (carré avec flèche vers le haut).
 3. Fais défiler et choisis **"Sur l'écran d'accueil"**.
 4. L'app apparaît comme une vraie app, en plein écran, sans barre d'adresse.
