@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1301,6 +1302,7 @@ async function openScanner() {
     } else {
       await loadZXing();
       if (!scannerActive) return;
+      if (zxingReader) { try { zxingReader.reset(); } catch (e) {} }
       zxingReader = new ZXing.BrowserMultiFormatReader();
       await zxingReader.decodeFromConstraints(
         { audio: false, video: { facingMode: 'environment' } },
@@ -1311,6 +1313,8 @@ async function openScanner() {
           }
         }
       );
+      // Closed while the camera was starting: the stream opened after reset(), stop it now
+      if (!scannerActive && zxingReader) { try { zxingReader.reset(); } catch (e) {} zxingReader = null; }
     }
   } catch (e) {
     closeScanner();
@@ -1327,7 +1331,8 @@ async function openScanner() {
 function closeScanner() {
   scannerActive = false;
   if (scanLoop) { clearTimeout(scanLoop); scanLoop = null; }
-  if (zxingReader) { try { zxingReader.reset(); } catch (e) {} zxingReader = null; }
+  // Keep the reader reference: openScanner() resets it again if the camera is still starting
+  if (zxingReader) { try { zxingReader.reset(); } catch (e) {} }
   if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
   const video = document.getElementById('scannerVideo');
   video.srcObject = null;
@@ -1350,17 +1355,34 @@ function onScanResult(text, format) {
 function openMenu() { openSheet('menuModal'); }
 function closeMenu() { closeSheet('menuModal'); }
 
-function exportData() {
+async function exportData() {
   const data = JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), cards }, null, 2);
+  const filename = 'mes-cartes-' + new Date().toISOString().slice(0, 10) + '.json';
   const blob = new Blob([data], { type: 'application/json' });
+
+  // iPhone (especially as a home-screen app): the share sheet is the reliable way to save a
+  // file — "Enregistrer dans Fichiers", Mail, AirDrop. A plain download can silently do nothing.
+  const file = typeof File === 'function' ? new File([blob], filename, { type: 'application/json' }) : null;
+  if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: 'Sauvegarde Mes Cartes' });
+      toast('Sauvegarde partagée');
+      closeMenu();
+      return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;   // the user closed the share sheet
+    }
+  }
+
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'mes-cartes-' + new Date().toISOString().slice(0,10) + '.json';
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  // Revoking right after click() makes Safari cancel the download: keep the URL alive a while
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
   toast('Fichier exporté');
   closeMenu();
 }
@@ -1506,6 +1528,11 @@ document.addEventListener('visibilitychange', () => {
 
 load();
 render();
+
+// Best effort: ask the browser to keep this site's storage under pressure (cards live only here)
+if (navigator.storage && navigator.storage.persist) {
+  navigator.storage.persisted().then(p => p || navigator.storage.persist()).catch(() => {});
+}
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
